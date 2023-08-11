@@ -1,0 +1,26 @@
+Ticketing Problem, Solution -> Feature
+
+· buyers face multiple unclear fees -> final price with & fees sponsored
+· no intermediaries
+· bots purchase tickets from primary and inflate price on resell
+    -> worldcoin Id preventing SybilAttack
+    -> max TicketCap per user (5?)
+    -> max resell priceCap
+
+· fake tickets -> NFT selfsolves
+· different Tiers -> granular access offers personalized add-ons
+· creators, artists, .. don't benefit from resale -> programmable royalties
+
+NFT Tickets Marketplace
+· login with worldcoin
+. search for events (=collections)
+    -> mint Ticket or get on secondary Marketplace
+    -> ticket Tiers
+
+· when purchased, it shows up on myEvents
+· invitationCodes (for workers, marketingCampaigns, speakers/sponsors)
+    -> free mint (non-resellable, not listed, idTag)
+
+IMPLEMENTATION
+
+· list event from organizer -> set parameters and one-click generation with AA

@@ -16,5 +16,32 @@ contract ERC1155 {
     string public symbol;
     address public owner;
 
+    event TransferSingle(address indexed operator, address indexed from, address indexed to, uint256[] ids, uint256[] values);
+
+    event TransferBatch(
+        address indexed operator,
+        address indexed from,
+        address indexed to,
+        uint256[] ids,
+        uint256[] values
+    );
+
+    event ApprovalForAll(address indexed account, address indexed operator, bool approved);
+
+    constructor(string memory _name, string memory _symbol) {
+        owner = msg.sender;
+        name = _name;
+        symbol = _symbol;
+        nextTokenIdToMint = 0;
+    }
+
+    function balanceOf(address _owner, uint256 _tokenId) public view returns(uint256) {
+        require(_owner != address(0), "Not valid Address");
+        return _balances [_tokenId][_owner];
+    }
+
+    function setApprovalForAll(address _operator, bool _approved) public {
+        _operatorApprovals[msg.sender][_operator] = _approved;
+    }
     
 }
