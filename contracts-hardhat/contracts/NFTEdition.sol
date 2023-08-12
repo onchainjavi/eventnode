@@ -3,12 +3,15 @@ pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/security/Pausable.sol";
+import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
 // tengo un struct prototypo Edition
 // tengo un mapping de id => Edition
 // incicializo una struct Edition llamada edition con los datos introducidos en el constructor
 
-contract NFTEdition is ERC1155, Ownable {
+contract NFTEdition is ERC1155, Ownable, Pausable, ERC1155Supply {
     struct Edition {
         string name;
         uint256 price;
@@ -22,7 +25,7 @@ contract NFTEdition is ERC1155, Ownable {
 
     constructor(
         string memory _name,
-        uint256 _priceInEther, // Accept the price in Ether
+        uint256 _priceInWei, 
         uint256 _maxSupply,
         string memory _uri
     ) ERC1155(_uri) {
@@ -31,7 +34,7 @@ contract NFTEdition is ERC1155, Ownable {
 
         editions[nextEditionId] = Edition({
             name: _name,
-            price: _priceInEther, // * 1 ether,
+            price: _priceInWei,
             maxSupply: _maxSupply,
             currentSupply: 0,
             uri: _uri
@@ -39,6 +42,11 @@ contract NFTEdition is ERC1155, Ownable {
     }
 
     //Edition public edition = editions[nextEditionId];
+    event TokensMinted(
+    uint256 indexed editionId,
+    address indexed minter,
+    uint256 amount
+    );
 
     function mint(uint256 id, uint256 amount) public payable {
         require(editions[id].currentSupply + amount <= editions[id].maxSupply, "Exceeded max supply");
@@ -46,10 +54,56 @@ contract NFTEdition is ERC1155, Ownable {
 
         editions[id].currentSupply += amount;
         _mint(msg.sender, id, amount, new bytes(0));
+
+        emit TokensMinted(
+        id,
+        msg.sender,
+        amount
+        );
     }
 
     function getCircSupply(uint256 id) public view returns(uint256) {
         return(editions[id].currentSupply);
+    }
+
+    event UriChanged(uint256 indexed editionId, string newUri);
+
+    function setURI(string memory newuri, uint256 id) public onlyOwner {
+        _setURI(newuri);
+        emit UriChanged(id, newuri);
+    }
+    function _beforeTokenTransfer(address operator, address from, address to, uint256[] memory ids, uint256[] memory amounts, bytes memory data)
+        internal
+        whenNotPaused
+        override(ERC1155, ERC1155Supply)
+    {
+        super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
+    }
+
+    function uri(uint256 _id) virtual override public view returns (string memory) {
+        require (exists(_id), "URI: nonexisting edition");
+        return (string(abi.encodePacked(super.uri(_id), Strings.toString(_id), ".json")));
+    }
+    event Paused();
+    event Unpaused();
+
+    function pause() public onlyOwner {
+        _pause();
+        emit Paused();
+    }
+
+    function unpause() public onlyOwner {
+        _unpause();
+        emit Unpaused();
+    }
+
+    event withdrawal();
+
+    function withdrawBalance() public onlyOwner {
+        // This function allows the owner to withdraw the balance of the contract
+        uint256 balance = address(this).balance;
+        payable(owner()).transfer(balance);
+        emit withdrawal();
     }
 }
 
